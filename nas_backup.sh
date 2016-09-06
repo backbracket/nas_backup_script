@@ -5,38 +5,47 @@
 
 error() { echo "--error-- $@" 1>&2; exit -1; }
 
-if [ $# -ne 1 ]
-then
-    error "usage: $(basename $0) <filelist>"    
-fi
+#------------------------------------------------------------------------------
 
-filelist=$1
+USAGE="usage: $(basename $0) <filelist>"
 
 DESTDIR=/share/USBDisk1/nas
 DATE=$(date +%Y-%m-%d)
 TIME=$(date +%H-%M-%S)
 BACKUPDIR=$DESTDIR/_backup-logs/$DATE.$TIME
 
+#------------------------------------------------------------------------------
 
-cd $DESTDIR
+main()
+{
+    local filelist failfile src dest log msg i
 
-if [ "$(pwd)" != "$DESTDIR" ]
-then
-    error "Must be run from $DESTDIR"
-fi
+    if [ $# -ne 1 ]
+    then
+        error "usage: $(basename $0) <filelist>"    
+    fi
 
-mkdir -p $BACKUPDIR
-failfile=$BACKUPDIR/FAILED
+    filelist=$1
 
-dirs=( $(cat $filelist) )
+    cd $DESTDIR
 
-for (( i=0; i<${#dirs[@]}; i+=2 ))
-do
-    src=${dirs[$i]}
-    dest=${dirs[$i+1]}
-    log=$BACKUPDIR/$(basename $dest).log
+    if [ "$(pwd)" != "$DESTDIR" ]
+    then
+        error "Must be run from $DESTDIR"
+    fi
 
-    rsync --recursive           \
+    mkdir -p $BACKUPDIR
+    failfile=$BACKUPDIR/FAILED
+
+    dirs=( $(cat $filelist) )
+
+    for (( i=0; i<${#dirs[@]}; i+=2 ))
+    do
+        src=${dirs[$i]}
+        dest=${dirs[$i+1]}
+        log=$BACKUPDIR/$(basename $dest).log
+
+        rsync --recursive       \
             --links             \
             --stats             \
             --times             \
@@ -47,15 +56,17 @@ do
             --delete-before     \
             $src $dest 2>&1 | tee $log
 
-    if [ ${PIPESTATUS[0]} -ne 0 ]
-    then
-        msg="backup failed: $src $dest"
-        echo $dest >> $failfile
-    else
-        msg="$dest [ok]"
-    fi
+        if [ ${PIPESTATUS[0]} -ne 0 ]
+        then
+            msg="backup failed: $src $dest"
+            echo $dest >> $failfile
+        else
+            msg="$dest [ok]"
+        fi
 
-    echo $msg | tee -a $log
+        echo $msg | tee -a $log
 
-done
+    done
+}
 
+main "$@"
