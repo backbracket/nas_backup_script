@@ -1,7 +1,0 @@
-/share/MD0_DATA/git/          git
-/share/MD0_DATA/homes/kris/   homes/kris
-/share/MD0_DATA/iphoto/       iphoto
-/share/MD0_DATA/itunes/       itunes
-/share/MD0_DATA/Multimedia/   Multimedia
-/share/MD0_DATA/WDBackup/     WDBackup
-/share/MD0_DATA/workspace/    workspace
